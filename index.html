@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinanceGuard — Your Financial Safety Partner</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: {950:'#030712',900:'#0a0f1c',800:'#0f172a',700:'#1e293b'},
+        cyan: {400:'#22d3ee',500:'#06b6d4'},
+        electric: {400:'#38bdf8'},
+        lime: {400:'#a3e635',500:'#84cc16'},
+        danger: {400:'#f87171',500:'#ef4444'},
+        warning: {400:'#fbbf24',500:'#f59e0b'}
+      }
+    }
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:Inter,system-ui,sans-serif;background:#030712;color:#e2e8f0;margin:0}
+  .glass{background:rgba(15,23,42,.6);backdrop-filter:blur(16px);border:1px solid rgba(148,163,184,.12)}
+  .glass-strong{background:rgba(15,23,42,.85);backdrop-filter:blur(24px);border:1px solid rgba(148,163,184,.18)}
+  .text-gradient{background:linear-gradient(135deg,#22d3ee,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .card-tilt{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .card-tilt:hover{transform:translateY(-6px) scale(1.02)}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .bracelet-float{animation:float 5s ease-in-out infinite}
+  input[type=range]{-webkit-appearance:none;height:6px;border-radius:3px;background:#1e293b}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#22d3ee;cursor:pointer;box-shadow:0 0 10px rgba(34,211,238,.5)}
+  html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React;
+
+function cn(...c){return c.filter(Boolean).join(' ')}
+
+function App(){
+  const [scrolled,setScrolled]=useState(false);
+  const [mobile,setMobile]=useState(false);
+  const [score,setScore]=useState(0);
+  const [amount,setAmount]=useState(450);
+  const [result,setResult]=useState(null);
+  const [tab,setTab]=useState('dashboard');
+  const [income,setIncome]=useState(3200);
+  const [commit,setCommit]=useState(1800);
+  const [shop,setShop]=useState(300);
+  const [save,setSave]=useState(1500);
+  const scoreRef=useRef(null);
+
+  useEffect(()=>{
+    const onS=()=>setScrolled(window.scrollY>40);
+    window.addEventListener('scroll',onS);
+    return()=>window.removeEventListener('scroll',onS);
+  },[]);
+
+  useEffect(()=>{
+    const obs=new IntersectionObserver(([e])=>{
+      if(e.isIntersecting){
+        let start=performance.now();
+        const tick=now=>{
+          const p=Math.min((now-start)/1600,1);
+          setScore(Math.round((1-Math.pow(1-p,3))*72));
+          if(p<1)requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    },{threshold:0.3});
+    if(scoreRef.current)obs.observe(scoreRef.current);
+    return()=>obs.disconnect();
+  },[]);
+
+  const simScore=useMemo(()=>{
+    const buffer=income-commit-shop;
+    const ratio=save/(commit||1);
+    let s=50;
+    if(buffer>500)s+=15;else if(buffer>0)s+=5;else s-=20;
+    if(ratio>2)s+=20;else if(ratio>1)s+=10;else if(ratio<0.5)s-=15;
+    if(shop>income*0.2)s-=10;
+    return Math.max(0,Math.min(100,Math.round(s)));
+  },[income,commit,shop,save]);
+
+  const status=score>=80?'Strong':score>=60?'Safe':score>=40?'Caution':'High Risk';
+  const statusColor=score>=80?'text-lime-400':score>=60?'text-cyan-400':score>=40?'text-warning-400':'text-danger-400';
+  const circ=2*Math.PI*90;
+  const offset=circ-(score/100)*circ;
+  const projected=1200-amount-650;
+  const simStatus=simScore>=80?'Strong':simScore>=60?'Safe':simScore>=40?'Caution':'High Risk';
+  const simColor=simScore>=80?'text-lime-400':simScore>=60?'text-cyan-400':simScore>=40?'text-warning-400':'text-danger-400';
+  const simProj=income-commit-shop;
+
+  return (
+    <div className="min-h-screen bg-navy-950 overflow-x-hidden">
+      {/* Navbar */}
+      <header className={cn('fixed top-0 inset-x-0 z-50 transition-all duration-300',scrolled?'bg-navy-900/80 backdrop-blur-xl border-b border-white/5':'bg-transparent')}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 lg:h-20">
+          <a href="#" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-electric-400 flex items-center justify-center">
+              <svg className="w-5 h-5 text-navy-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span className="font-bold text-lg text-white">FINANCE<span className="text-cyan-400">GUARD</span></span>
+          </a>
+          <nav className="hidden lg:flex items-center gap-1">
+            {['Overview','Features','How It Works','Dashboard','Emergency','Smart Band'].map((l,i)=>(
+              <a key={i} href={'#'+l.toLowerCase().replace(/ /g,'-')} className="px-3 py-2 text-sm text-slate-400 hover:text-white rounded-lg hover:bg-white/5">{l}</a>
+            ))}
+          </nav>
+          <a href="#simulator" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 text-cyan-400 text-sm font-medium border border-cyan-500/30 hover:bg-cyan-500/20">Try Demo</a>
+          <button onClick={()=>setMobile(!mobile)} className="lg:hidden p-2 text-slate-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d={mobile?"M6 18L18 6M6 6l12 12":"M4 6h16M4 12h16M4 18h16"}/></svg>
+          </button>
+        </div>
+        {mobile&&(
+          <div className="lg:hidden glass-strong border-t border-white/5 px-4 py-4 space-y-1">
+            {['Overview','Features','How It Works','Dashboard','Emergency','Smart Band'].map((l,i)=>(
+              <a key={i} href={'#'+l.toLowerCase().replace(/ /g,'-')} onClick={()=>setMobile(false)} className="block px-4 py-3 text-slate-300 hover:text-white rounded-xl">{l}</a>
+            ))}
+          </div>
+        )}
+      </header>
+
+      {/* Hero */}
+      <section id="overview" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"/>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"/>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-medium text-cyan-400 border border-cyan-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"/>Feel. Alert. Act.
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
+                Your Money Has a <span className="text-gradient">Guardian</span> Now.
+              </h1>
+              <p className="text-lg text-slate-400 max-w-lg">A smart financial safety system that detects risky spending, monitors financial stress and helps you act before small problems become financial crises.</p>
+              <div className="flex flex-wrap gap-4">
+                <a href="#features" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-cyan-500 text-navy-950 font-semibold hover:bg-cyan-400 shadow-lg shadow-cyan-500/20">Explore FinanceGuard →</a>
+                <a href="#simulator" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full glass text-white font-medium border border-white/10 hover:bg-white/10">View Live Demo</a>
+              </div>
+              <p className="text-sm text-slate-500">FinanceGuard Band + Intelligent Financial App</p>
+            </div>
+            <div className="relative flex justify-center">
+              <div className="relative bracelet-float">
+                <div className="absolute -left-8 top-8 glass rounded-xl px-3 py-2 text-xs border border-cyan-500/20"><div className="text-slate-400">Spending Risk</div><div className="text-lime-400 font-semibold">Low</div></div>
+                <div className="absolute -right-4 top-24 glass rounded-xl px-3 py-2 text-xs border border-cyan-500/20"><div className="text-slate-400">Safety Score</div><div className="text-cyan-400 font-semibold">72</div></div>
+                <div className="absolute -left-12 bottom-32 glass rounded-xl px-3 py-2 text-xs border border-cyan-500/20"><div className="text-slate-400">Next Payment</div><div className="text-white font-semibold">RM350</div></div>
+                <div className="absolute -right-8 bottom-16 glass rounded-xl px-3 py-2 text-xs border border-cyan-500/20"><div className="text-slate-400">Projected Balance</div><div className="text-electric-400 font-semibold">RM580</div></div>
+                <div className="relative w-64 h-80 mx-auto">
+                  <div className="absolute inset-x-8 top-4 bottom-4 rounded-[2.5rem] bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 shadow-2xl">
+                    <div className="absolute inset-3 rounded-[2rem] bg-navy-950 border border-slate-800 flex flex-col items-center justify-center p-4">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">FinanceGuard</div>
+                      <div className="text-3xl font-bold text-lime-400">SAFE</div>
+                      <div className="text-5xl font-bold text-white mt-1">72</div>
+                      <div className="text-xs text-slate-500 mt-1">/ 100</div>
+                      <div className="mt-4 w-full h-1.5 rounded-full bg-slate-800 overflow-hidden"><div className="h-full w-[72%] rounded-full bg-gradient-to-r from-lime-500 to-cyan-400"/></div>
+                    </div>
+                  </div>
+                  <div className="absolute top-0 inset-x-12 h-6 rounded-t-xl bg-slate-800 border border-slate-700"/>
+                  <div className="absolute bottom-0 inset-x-12 h-6 rounded-b-xl bg-slate-800 border border-slate-700"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Safety Score */}
+      <section ref={scoreRef} className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Your Financial Safety Score</h2>
+            <p className="text-slate-400 max-w-xl mx-auto">Real-time assessment of your financial health.</p>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="flex flex-col items-center">
+              <div className="relative w-64 h-64">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+                  <defs><linearGradient id="gS" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#84cc16"/><stop offset="100%" stopColor="#22d3ee"/></linearGradient></defs>
+                  <circle cx="100" cy="100" r="90" fill="none" stroke="#1e293b" strokeWidth="12"/>
+                  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#gS)" strokeWidth="12" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{transition:'stroke-dashoffset 1.8s cubic-bezier(0.4,0,0.2,1)'}}/>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className={cn('text-sm font-medium uppercase tracking-wider',statusColor)}>{status}</div>
+                  <div className="text-5xl font-bold text-white mt-1">{score}</div>
+                  <div className="text-slate-500 text-sm">/ 100</div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                {[{l:'Projected Balance',v:'RM580',c:'text-electric-400'},{l:'Upcoming Payments',v:'3 Payments',c:'text-white'},{l:'Spending Risk',v:'Low',c:'text-lime-400'}].map((s,i)=>(
+                  <div key={i} className="glass rounded-2xl p-4 text-center"><div className="text-xs text-slate-500 mb-1">{s.l}</div><div className={cn('text-lg font-semibold',s.c)}>{s.v}</div></div>
+                ))}
+              </div>
+              <div className="glass rounded-2xl p-6">
+                <div className="flex justify-between mb-4"><span className="text-sm text-slate-300">Balance Trend (14 days)</span><span className="text-xs text-lime-400">+12% buffer</span></div>
+                <svg viewBox="0 0 400 100" className="w-full h-24">
+                  <path d="M0 80 Q40 70 80 65 T160 50 T240 45 T320 30 T400 25" fill="none" stroke="#22d3ee" strokeWidth="2.5"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">ALL FUNCTIONS. ONE MISSION.</h2>
+            <p className="text-lg text-cyan-400 font-medium">Prevent Financial Distress. Build Financial Freedom.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              {t:'Impulse Spending Alert',d:'Detect unusual or high-risk purchases.',b:'PAUSE\nReview Your Spend'},
+              {t:'Financial Safety Score',d:'Real-time financial safety monitoring.',b:'72\nSAFE'},
+              {t:'Can I Afford This?',d:'Check if a purchase fits your situation.',b:'CAN I\nAFFORD THIS?'},
+              {t:'24-Hour Purchase Lock',d:'Temporarily delay high-risk purchases.',b:'24H\nPAUSE'},
+              {t:'Financial Collision Alert',d:'Detect multiple payments in a short period.',b:'3 PAYMENTS\nCOMING SOON'},
+              {t:'Stress + Spending Detection',d:'Emotional spending from stress indicators.',b:'STRESS\nDETECTED'},
+              {t:'Emergency Mode',d:'Activate survival plan for serious difficulty.',b:'SOS\nEMERGENCY'},
+              {t:'Stress Reset',d:'Guided breathing before emotional decisions.',b:'BREATHE'},
+            ].map((f,i)=>(
+              <div key={i} className="glass rounded-2xl p-5 card-tilt hover:border-cyan-500/40 cursor-pointer">
+                <div className="flex justify-between mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-lg font-bold">{i+1}</div>
+                  <div className="w-14 h-16 rounded-lg bg-navy-950 border border-slate-700 flex items-center justify-center p-1">
+                    <div className="text-[8px] text-center text-cyan-400 font-mono leading-tight whitespace-pre-line">{f.b}</div>
+                  </div>
+                </div>
+                <h3 className="text-sm font-semibold text-white mb-1.5">{f.t}</h3>
+                <p className="text-xs text-slate-400">{f.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Afford Demo */}
+      <section className="py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Before You Buy, Ask FinanceGuard.</h2>
+          </div>
+          <div className="glass-strong rounded-3xl p-6 sm:p-10">
+            <div className="grid sm:grid-cols-3 gap-4 mb-8">
+              <div className="rounded-xl bg-navy-800/50 p-4 text-center"><div className="text-xs text-slate-500">Available Balance</div><div className="text-xl font-semibold text-white">RM1,200</div></div>
+              <div className="rounded-xl bg-navy-800/50 p-4 text-center"><div className="text-xs text-slate-500">Upcoming Bills</div><div className="text-xl font-semibold text-warning-400">RM650</div></div>
+              <div className="rounded-xl bg-navy-800/50 p-4 text-center"><div className="text-xs text-slate-500">Emergency Reserve</div><div className="text-xl font-semibold text-cyan-400">RM300</div></div>
+            </div>
+            <div className="mb-8">
+              <label className="block text-sm text-slate-400 mb-2">Purchase Amount (RM)</label>
+              <div className="flex gap-4 items-center">
+                <input type="range" min="50" max="1500" step="50" value={amount} onChange={e=>{setAmount(+e.target.value);setResult(null)}} className="flex-1"/>
+                <span className="text-2xl font-bold text-white w-28 text-right">RM{amount}</span>
+              </div>
+            </div>
+            <button onClick={()=>setResult(projected>=300?'safe':projected>=100?'caution':'danger')} className="w-full py-4 rounded-2xl bg-cyan-500 text-navy-950 font-semibold text-lg hover:bg-cyan-400">CHECK PURCHASE</button>
+            {result&&(
+              <div className={cn('mt-6 rounded-2xl p-6 border',result==='safe'?'bg-lime-500/10 border-lime-500/30':result==='caution'?'bg-warning-500/10 border-warning-500/30':'bg-danger-500/10 border-danger-500/30')}>
+                <div className={cn('text-xl font-bold mb-2',result==='safe'?'text-lime-400':result==='caution'?'text-warning-400':'text-danger-400')}>
+                  {result==='safe'?'YES — SAFE TO PURCHASE':result==='caution'?'CAUTION':'NOT RECOMMENDED'}
+                </div>
+                <p className="text-sm text-slate-300">{result==='safe'?'Your projected balance remains within your safety range.':result==='caution'?'This purchase may reduce your financial buffer.':'This purchase may affect upcoming essential payments.'}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard */}
+      <section id="dashboard" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Intelligent Mobile Experience</h2>
+          <div className="flex justify-center mb-8 mt-8">
+            <div className="inline-flex glass rounded-full p-1">
+              {['dashboard','timeline','insights'].map(t=>(
+                <button key={t} onClick={()=>setTab(t)} className={cn('px-5 py-2 rounded-full text-sm font-medium capitalize',tab===t?'bg-cyan-500 text-navy-950':'text-slate-400')}>{t}</button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="relative w-[300px] h-[580px] rounded-[2.5rem] bg-slate-900 border-[6px] border-slate-800 shadow-2xl overflow-hidden">
+              <div className="pt-10 px-4 h-full bg-navy-950 overflow-y-auto">
+                {tab==='dashboard'&&(
+                  <div className="space-y-4 text-left">
+                    <div className="text-center"><div className="text-xs text-slate-500">Safety Score</div><div className="text-4xl font-bold text-cyan-400">72</div><div className="text-xs text-lime-400">SAFE</div></div>
+                    <div className="glass rounded-2xl p-4"><div className="text-xs text-slate-500">Projected Balance</div><div className="text-2xl font-bold text-white">RM580</div></div>
+                    <div className="glass rounded-2xl p-4"><div className="text-xs text-slate-500">Upcoming Payments</div><div className="text-lg font-semibold text-white">3 payments · RM1,150</div></div>
+                  </div>
+                )}
+                {tab==='timeline'&&(
+                  <div className="space-y-3 text-left">
+                    {[['15 AUG','Salary','+RM2,500','in'],['17 AUG','Rent','-RM900','out'],['20 AUG','Car Payment','-RM500','out'],['23 AUG','Credit Card','-RM350','out'],['26 AUG','PTPTN','-RM250','out']].map(([d,l,a,t],i)=>(
+                      <div key={i} className="flex items-center gap-3 glass rounded-xl p-3"><div className="text-[10px] text-slate-500 w-12">{d}</div><div className="flex-1 text-sm text-white">{l}</div><div className={cn('text-sm font-medium',t==='in'?'text-lime-400':'text-slate-300')}>{a}</div></div>
+                    ))}
+                    <div className="p-3 rounded-xl bg-warning-500/10 border border-warning-500/20 text-left"><div className="text-xs text-warning-400 font-medium">Projected Balance: RM180</div><div className="text-[10px] text-slate-400">⚠ Low Balance Warning</div></div>
+                  </div>
+                )}
+                {tab==='insights'&&(
+                  <div className="space-y-4 text-left">
+                    <div className="text-sm font-semibold text-white">Spending Categories</div>
+                    <div className="glass rounded-xl p-3"><div className="text-xs text-slate-500">Spending Trend</div><div className="text-lime-400 font-semibold">-8%</div><p className="text-[10px] text-slate-400 mt-1">Your shopping expenses increased 22% compared with last month.</p></div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Emergency */}
+      <section id="emergency" className="py-24 bg-gradient-to-b from-navy-950 via-red-950/20 to-navy-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-danger-500/10 border border-danger-500/30 text-danger-400 text-xs font-medium mb-4">SURVIVAL MODE</div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">When Financial Pressure Gets Serious,<br/><span className="text-danger-400">FinanceGuard Changes Mode.</span></h2>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div className="flex justify-center">
+              <div className="w-[260px] h-[500px] rounded-[2rem] bg-slate-900 border-[5px] border-slate-800 shadow-2xl overflow-hidden">
+                <div className="pt-8 px-4 h-full bg-navy-950">
+                  <div className="text-center mb-4"><div className="text-sm font-semibold text-danger-400">You're in Survival Mode</div></div>
+                  <div className="space-y-3">
+                    <div className="glass rounded-xl p-3"><div className="text-[10px] text-slate-500">Money Available</div><div className="text-xl font-bold text-white">RM180</div></div>
+                    <div className="glass rounded-xl p-3"><div className="text-[10px] text-slate-500">Days Until Next Income</div><div className="text-xl font-bold text-warning-400">9 Days</div></div>
+                    <div className="rounded-xl p-3 bg-danger-500/10 border border-danger-500/20"><div className="text-[10px] text-danger-400">Safe Daily Spending</div><div className="text-lg font-bold text-danger-400">RM4.44 / day</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-white">SURVIVAL PLAN</h3>
+              {[['1','Protect Essentials','Focus on food, transport, housing and health.'],['2','Reduce & Pause','Pause non-essential spending and subscriptions.'],['3','Find Support','Explore payment plans, assistance and resources.'],['4','Take One Step','Recommend one manageable financial action today.']].map(([n,t,d],i)=>(
+                <div key={i} className="flex gap-4 glass rounded-2xl p-5">
+                  <div className="w-8 h-8 rounded-full bg-danger-500/20 flex items-center justify-center text-danger-400 font-bold text-sm flex-shrink-0">{n}</div>
+                  <div><h4 className="font-semibold text-white mb-1">{t}</h4><p className="text-sm text-slate-400">{d}</p></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Simulator */}
+      <section id="simulator" className="py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Test Your Financial Safety</h2>
+            <p className="text-slate-400">Move the sliders and see how FinanceGuard would score your situation.</p>
+          </div>
+          <div className="glass-strong rounded-3xl p-6 sm:p-10">
+            <div className="space-y-8 mb-10">
+              {[{l:'Monthly Income',v:income,s:setIncome,min:1000,max:10000},{l:'Monthly Commitments',v:commit,s:setCommit,min:0,max:8000},{l:'Shopping Spending',v:shop,s:setShop,min:0,max:5000},{l:'Emergency Savings',v:save,s:setSave,min:0,max:20000}].map((x,i)=>(
+                <div key={i}>
+                  <div className="flex justify-between text-sm mb-2"><span className="text-slate-400">{x.l}</span><span className="text-white font-medium">RM{x.v.toLocaleString()}</span></div>
+                  <input type="range" min={x.min} max={x.max} step="50" value={x.v} onChange={e=>x.s(+e.target.value)} className="w-full"/>
+                </div>
+              ))}
+            </div>
+            <div className="grid sm:grid-cols-3 gap-4 mb-6">
+              <div className="rounded-2xl bg-navy-800/60 p-5 text-center"><div className="text-xs text-slate-500 mb-1">Safety Score</div><div className={cn('text-3xl font-bold',simColor)}>{simScore}</div><div className={cn('text-sm font-medium',simColor)}>{simStatus}</div></div>
+              <div className="rounded-2xl bg-navy-800/60 p-5 text-center"><div className="text-xs text-slate-500 mb-1">Risk Level</div><div className={cn('text-xl font-bold',simColor)}>{simStatus}</div></div>
+              <div className="rounded-2xl bg-navy-800/60 p-5 text-center"><div className="text-xs text-slate-500 mb-1">Projected Balance</div><div className={cn('text-xl font-bold',simProj>=0?'text-lime-400':'text-danger-400')}>RM{simProj.toLocaleString()}</div></div>
+            </div>
+            <div className="rounded-2xl bg-cyan-500/10 border border-cyan-500/20 p-5">
+              <div className="text-xs text-cyan-400 font-medium mb-1">Recommended Action</div>
+              <p className="text-sm text-slate-300">{simScore>=70?'Your finances are currently stable, but reducing discretionary spending by RM150 could strengthen your emergency buffer.':simScore>=50?'Consider pausing non-essential purchases this month and reviewing upcoming commitments.':'High risk detected. Focus on essentials only and explore income or support options.'}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 pt-16 pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-electric-400 flex items-center justify-center">
+                <svg className="w-4 h-4 text-navy-950" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <span className="font-bold text-white">FINANCE<span className="text-cyan-400">GUARD</span></span>
+            </div>
+            <p className="text-sm text-slate-500">Detect Early. Act Smart. Stay Safe. Live Free.</p>
+          </div>
+          <p className="text-xs text-slate-600 text-center">FinanceGuard provides financial monitoring and educational guidance and does not replace professional financial advice.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
